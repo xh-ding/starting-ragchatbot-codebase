@@ -107,6 +107,29 @@ header h1 {
     margin-bottom: 1.5rem;
 }
 
+.new-chat-btn {
+    display: block;
+    width: 100%;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: none;
+    border: none;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.2s ease;
+}
+
+.new-chat-btn:hover {
+    color: var(--primary-color);
+}
+
 .sidebar-section:last-child {
     margin-bottom: 0;
 }
