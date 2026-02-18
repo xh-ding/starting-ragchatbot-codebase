@@ -10,10 +10,10 @@ so ChromaDB actually returns results.
 import pytest
 from unittest.mock import MagicMock, patch
 
-
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
 # ---------------------------------------------------------------------------
+
 
 def make_config(max_results=5):
     cfg = MagicMock()
@@ -33,15 +33,18 @@ def build_rag_system(config, ai_response="Here is the answer."):
     Build a RAGSystem with all external dependencies mocked.
     Returns (system, mock_ai_generator).
     """
-    with patch("rag_system.DocumentProcessor"), \
-         patch("rag_system.VectorStore"), \
-         patch("rag_system.AIGenerator") as mock_gen_cls, \
-         patch("rag_system.SessionManager"):
+    with (
+        patch("rag_system.DocumentProcessor"),
+        patch("rag_system.VectorStore"),
+        patch("rag_system.AIGenerator") as mock_gen_cls,
+        patch("rag_system.SessionManager"),
+    ):
 
         mock_gen = mock_gen_cls.return_value
         mock_gen.generate_response.return_value = ai_response
 
         from rag_system import RAGSystem
+
         system = RAGSystem(config)
 
     return system, mock_gen
@@ -51,19 +54,23 @@ def build_rag_system(config, ai_response="Here is the answer."):
 # Tests: return value shape
 # ---------------------------------------------------------------------------
 
+
 class TestRAGSystemQueryReturnValue:
 
     def test_query_returns_two_element_tuple(self):
         """query() must return a (response_str, sources_list) tuple."""
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager"):
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager"),
+        ):
 
             mock_gen_cls.return_value.generate_response.return_value = "answer"
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             result = system.query("What is MCP?")
 
@@ -73,14 +80,17 @@ class TestRAGSystemQueryReturnValue:
     def test_query_first_element_is_string(self):
         """First element of the tuple must be a string."""
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager"):
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager"),
+        ):
 
             mock_gen_cls.return_value.generate_response.return_value = "answer text"
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             response, _ = system.query("question")
 
@@ -90,14 +100,17 @@ class TestRAGSystemQueryReturnValue:
     def test_query_second_element_is_list(self):
         """Second element (sources) must be a list."""
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager"):
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager"),
+        ):
 
             mock_gen_cls.return_value.generate_response.return_value = "ok"
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             _, sources = system.query("question")
 
@@ -108,20 +121,24 @@ class TestRAGSystemQueryReturnValue:
 # Tests: tools are wired up
 # ---------------------------------------------------------------------------
 
+
 class TestRAGSystemToolUsage:
 
     def test_query_passes_tool_definitions_to_ai_generator(self):
         """generate_response() must receive non-empty 'tools' for content questions."""
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager"):
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager"),
+        ):
 
             mock_gen = mock_gen_cls.return_value
             mock_gen.generate_response.return_value = "answer"
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             system.query("What does lesson 3 cover?")
 
@@ -133,15 +150,18 @@ class TestRAGSystemToolUsage:
     def test_query_passes_tool_manager_to_ai_generator(self):
         """generate_response() must receive a tool_manager so it can execute tools."""
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager"):
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager"),
+        ):
 
             mock_gen = mock_gen_cls.return_value
             mock_gen.generate_response.return_value = "answer"
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             system.query("course question")
 
@@ -154,20 +174,24 @@ class TestRAGSystemToolUsage:
 # Tests: session management
 # ---------------------------------------------------------------------------
 
+
 class TestRAGSystemSessionManagement:
 
     def test_query_updates_session_history_when_session_provided(self):
         """query() must call add_exchange() with the user's question and AI response."""
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager") as mock_sess_cls:
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager") as mock_sess_cls,
+        ):
 
             mock_gen_cls.return_value.generate_response.return_value = "AI answer"
             mock_sess = mock_sess_cls.return_value
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             system.query("user question", session_id="session_1")
 
@@ -178,15 +202,18 @@ class TestRAGSystemSessionManagement:
     def test_query_does_not_update_history_without_session(self):
         """When no session_id is given, add_exchange() must not be called."""
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager") as mock_sess_cls:
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager") as mock_sess_cls,
+        ):
 
             mock_gen_cls.return_value.generate_response.return_value = "answer"
             mock_sess = mock_sess_cls.return_value
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             system.query("stateless question")
 
@@ -195,17 +222,22 @@ class TestRAGSystemSessionManagement:
     def test_query_fetches_conversation_history_for_session(self):
         """query() must retrieve conversation history and pass it to generate_response()."""
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager") as mock_sess_cls:
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager") as mock_sess_cls,
+        ):
 
             mock_gen = mock_gen_cls.return_value
             mock_gen.generate_response.return_value = "answer"
             mock_sess = mock_sess_cls.return_value
-            mock_sess.get_conversation_history.return_value = "User: prev\nAssistant: ok"
+            mock_sess.get_conversation_history.return_value = (
+                "User: prev\nAssistant: ok"
+            )
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             system.query("follow-up", session_id="s1")
 
@@ -218,6 +250,7 @@ class TestRAGSystemSessionManagement:
 # Tests: source reset
 # ---------------------------------------------------------------------------
 
+
 class TestRAGSystemSources:
 
     def test_sources_reset_after_each_query(self):
@@ -226,14 +259,17 @@ class TestRAGSystemSources:
         This prevents sources from leaking from one response to the next.
         """
         config = make_config()
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager"):
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager"),
+        ):
 
             mock_gen_cls.return_value.generate_response.return_value = "answer"
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             # Simulate a tool search having run
             system.search_tool.last_sources = [{"label": "stale", "url": None}]
@@ -248,16 +284,21 @@ class TestRAGSystemSources:
     def test_sources_returned_from_last_search_tool_call(self):
         """Sources collected during the query must be returned to the caller."""
         config = make_config()
-        expected_sources = [{"label": "Course A - Lesson 1", "url": "https://example.com"}]
+        expected_sources = [
+            {"label": "Course A - Lesson 1", "url": "https://example.com"}
+        ]
 
-        with patch("rag_system.DocumentProcessor"), \
-             patch("rag_system.VectorStore"), \
-             patch("rag_system.AIGenerator") as mock_gen_cls, \
-             patch("rag_system.SessionManager"):
+        with (
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator") as mock_gen_cls,
+            patch("rag_system.SessionManager"),
+        ):
 
             mock_gen_cls.return_value.generate_response.return_value = "answer"
 
             from rag_system import RAGSystem
+
             system = RAGSystem(config)
             # Simulate the search tool having populated sources during generate_response
             system.search_tool.last_sources = expected_sources
@@ -270,6 +311,7 @@ class TestRAGSystemSources:
 # ---------------------------------------------------------------------------
 # Tests: configuration — the primary root-cause check
 # ---------------------------------------------------------------------------
+
 
 class TestRAGSystemConfiguration:
 

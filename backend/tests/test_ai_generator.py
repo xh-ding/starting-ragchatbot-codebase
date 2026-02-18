@@ -9,12 +9,14 @@ import pytest
 from unittest.mock import MagicMock, call
 from ai_generator import AIGenerator
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def make_tool_use_response(tool_name="search_course_content", tool_id="tool_001", tool_input=None):
+
+def make_tool_use_response(
+    tool_name="search_course_content", tool_id="tool_001", tool_input=None
+):
     """Return a mock Anthropic response that requests a tool call."""
     if tool_input is None:
         tool_input = {"query": "test query"}
@@ -54,6 +56,7 @@ def make_generator():
 # Tests: single tool round
 # ---------------------------------------------------------------------------
 
+
 class TestAIGeneratorToolCalling:
 
     def test_tool_manager_called_when_stop_reason_is_tool_use(self):
@@ -62,9 +65,11 @@ class TestAIGeneratorToolCalling:
         mock_tool_manager = MagicMock()
         mock_tool_manager.execute_tool.return_value = "search result text"
 
-        first = make_tool_use_response(tool_name="search_course_content",
-                                       tool_id="t1",
-                                       tool_input={"query": "what is MCP"})
+        first = make_tool_use_response(
+            tool_name="search_course_content",
+            tool_id="t1",
+            tool_input={"query": "what is MCP"},
+        )
         second = make_text_response("MCP is a protocol.")
         gen.client.messages.create.side_effect = [first, second]
 
@@ -135,9 +140,9 @@ class TestAIGeneratorToolCalling:
         )
 
         second_call_kwargs = gen.client.messages.create.call_args_list[1][1]
-        assert "tools" in second_call_kwargs, (
-            "Loop iteration 2 must include tools so Claude can optionally search again."
-        )
+        assert (
+            "tools" in second_call_kwargs
+        ), "Loop iteration 2 must include tools so Claude can optionally search again."
 
     def test_tool_result_included_in_second_api_call_messages(self):
         """The tool's output must appear in the messages sent to the second API call."""
@@ -156,9 +161,12 @@ class TestAIGeneratorToolCalling:
             tool_manager=mock_tool_manager,
         )
 
-        second_call_messages = gen.client.messages.create.call_args_list[1][1]["messages"]
+        second_call_messages = gen.client.messages.create.call_args_list[1][1][
+            "messages"
+        ]
         tool_result_messages = [
-            m for m in second_call_messages
+            m
+            for m in second_call_messages
             if m.get("role") == "user"
             and isinstance(m.get("content"), list)
             and any(r.get("type") == "tool_result" for r in m["content"])
@@ -172,6 +180,7 @@ class TestAIGeneratorToolCalling:
 # ---------------------------------------------------------------------------
 # Tests: two tool rounds
 # ---------------------------------------------------------------------------
+
 
 class TestAIGeneratorTwoToolRounds:
 
@@ -241,9 +250,9 @@ class TestAIGeneratorTwoToolRounds:
         )
 
         synthesis_call_kwargs = gen.client.messages.create.call_args_list[2][1]
-        assert "tools" not in synthesis_call_kwargs, (
-            "Final synthesis call must not include 'tools' — prevents further tool calls."
-        )
+        assert (
+            "tools" not in synthesis_call_kwargs
+        ), "Final synthesis call must not include 'tools' — prevents further tool calls."
 
     def test_message_history_contains_both_tool_results_after_two_rounds(self):
         """
@@ -252,7 +261,10 @@ class TestAIGeneratorTwoToolRounds:
         """
         gen = make_generator()
         mock_tool_manager = MagicMock()
-        mock_tool_manager.execute_tool.side_effect = ["result from search 1", "result from search 2"]
+        mock_tool_manager.execute_tool.side_effect = [
+            "result from search 1",
+            "result from search 2",
+        ]
 
         gen.client.messages.create.side_effect = [
             make_tool_use_response(tool_id="t1", tool_input={"query": "q1"}),
@@ -284,6 +296,7 @@ class TestAIGeneratorTwoToolRounds:
 # Tests: error handling
 # ---------------------------------------------------------------------------
 
+
 class TestAIGeneratorErrorHandling:
 
     def test_tool_execution_exception_is_caught_and_loop_continues(self):
@@ -313,6 +326,7 @@ class TestAIGeneratorErrorHandling:
 # ---------------------------------------------------------------------------
 # Tests: system prompt
 # ---------------------------------------------------------------------------
+
 
 class TestAIGeneratorSystemPrompt:
 
@@ -355,17 +369,18 @@ class TestAIGeneratorSystemPrompt:
 
     def test_system_prompt_allows_up_to_two_searches(self):
         """The system prompt must reflect the new two-search-per-query capability."""
-        assert "one search per query" not in AIGenerator.SYSTEM_PROMPT.lower(), (
-            "Old single-search instruction should be removed."
-        )
-        assert "two" in AIGenerator.SYSTEM_PROMPT.lower(), (
-            "System prompt must instruct Claude that up to two searches are allowed."
-        )
+        assert (
+            "one search per query" not in AIGenerator.SYSTEM_PROMPT.lower()
+        ), "Old single-search instruction should be removed."
+        assert (
+            "two" in AIGenerator.SYSTEM_PROMPT.lower()
+        ), "System prompt must instruct Claude that up to two searches are allowed."
 
 
 # ---------------------------------------------------------------------------
 # Tests: direct (no-tool) response
 # ---------------------------------------------------------------------------
+
 
 class TestAIGeneratorDirectResponse:
 
